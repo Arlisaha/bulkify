@@ -17,13 +17,17 @@ module.exports = function (file, opts) {
         { 'bulk-require': bulkRequire },
         { vars: vars, varModules: { path: path } }
     );
-    return through(function (buf, enc, next) {
-        sm.write(buf)
-        sm.end()
+    var s = "";
+    return through((chunk, enc, cb) => {
+        s += chunk;
+        cb();
+    }, cb => {
+        sm.write(s)
+        sm.end();
         sm.pipe(concat(function (output) {
-            next(null, output)
-        }))
-    })
+            cb(null, output);
+        }));
+    });
 
     function bulkRequire (dir, globs, opts) {
         var stream = through();
